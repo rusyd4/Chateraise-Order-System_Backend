@@ -1,7 +1,16 @@
+/**
+ * Controller for user authentication
+ */
+
 const pool = require('../db');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
+/**
+ * Register a new user
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
 exports.register = async (req, res) => {
   const { full_name, email, password, role } = req.body;
   if (!full_name || !email || !password || !role) return res.status(400).json({ msg: 'All fields required' });
@@ -22,6 +31,11 @@ exports.register = async (req, res) => {
   }
 };
 
+/**
+ * Login a user and return JWT token
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
 exports.login = async (req, res) => {
   const { email, password } = req.body;
   try {

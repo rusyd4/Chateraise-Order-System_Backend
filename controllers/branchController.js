@@ -72,12 +72,29 @@ exports.getBranchOrders = async (req, res) => {
 // Update branch profile (own account only)
 exports.updateBranchProfile = async (req, res) => {
   const branch_id = req.user.user_id;
-  const { full_name, email } = req.body;
+  const { full_name, email, branch_address } = req.body;
   try {
     const result = await pool.query(
-      'UPDATE users SET full_name = $1, email = $2 WHERE user_id = $3 RETURNING user_id, full_name, email',
-      [full_name, email, branch_id]
+      'UPDATE users SET full_name = $1, email = $2, branch_address = $3 WHERE user_id = $4 RETURNING user_id, full_name, email, branch_address',
+      [full_name, email, branch_address, branch_id]
     );
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ msg: 'Server error', error: err.message });
+  }
+};
+
+// Get branch profile (own account only)
+exports.getBranchProfile = async (req, res) => {
+  const branch_id = req.user.user_id;
+  try {
+    const result = await pool.query(
+      'SELECT user_id, full_name, email, branch_address FROM users WHERE user_id = $1',
+      [branch_id]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ msg: 'Branch profile not found' });
+    }
     res.json(result.rows[0]);
   } catch (err) {
     res.status(500).json({ msg: 'Server error', error: err.message });

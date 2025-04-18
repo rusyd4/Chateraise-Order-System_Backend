@@ -90,20 +90,67 @@ exports.deleteBranch = async (req, res) => {
 // Order Management
 exports.getAllOrders = async (req, res) => {
   try {
-    const result = await pool.query(`
-      SELECT o.order_id, u.full_name AS branch_name, o.order_date, o.submitted_at,
-             json_agg(json_build_object(
-               'food_name', f.food_name,
-               'quantity', oi.quantity,
-               'price', f.price
-             )) AS items
-      FROM orders o
-      JOIN users u ON o.branch_id = u.user_id
-      JOIN order_items oi ON o.order_id = oi.order_id
-      JOIN food_items f ON oi.food_id = f.food_id
-      GROUP BY o.order_id, u.full_name, o.order_date, o.submitted_at
-      ORDER BY o.submitted_at DESC
-    `);
+    const result = await pool.query(
+      "SELECT o.order_id, u.full_name AS branch_name, o.order_date, o.submitted_at, " +
+      "json_agg(json_build_object( " +
+      "'food_name', f.food_name, " +
+      "'quantity', oi.quantity, " +
+      "'price', f.price " +
+      ")) AS items " +
+      "FROM orders o " +
+      "JOIN users u ON o.branch_id = u.user_id " +
+      "JOIN order_items oi ON o.order_id = oi.order_id " +
+      "JOIN food_items f ON oi.food_id = f.food_id " +
+      "GROUP BY o.order_id, u.full_name, o.order_date, o.submitted_at " +
+      "ORDER BY o.submitted_at DESC"
+    );
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ msg: 'Server error', error: err.message });
+  }
+};
+
+exports.getOrdersByBranchAndDate = async (req, res) => {
+  const { branch_name, order_date } = req.query;
+
+  try {
+    let baseQuery = 
+      "SELECT o.order_id, u.full_name AS branch_name, o.order_date, o.submitted_at, " +
+      "json_agg(json_build_object( " +
+      "'food_name', f.food_name, " +
+      "'quantity', oi.quantity, " +
+      "'price', f.price " +
+      ")) AS items " +
+      "FROM orders o " +
+      "JOIN users u ON o.branch_id = u.user_id " +
+      "JOIN order_items oi ON o.order_id = oi.order_id " +
+      "JOIN food_items f ON oi.food_id = f.food_id ";
+
+    let conditions = [];
+    let params = [];
+    let paramIndex = 1;
+
+    if (branch_name) {
+      conditions.push("u.full_name = $" + paramIndex);
+      params.push(branch_name);
+      paramIndex++;
+    }
+
+    if (order_date) {
+      conditions.push("o.order_date = $" + paramIndex);
+      params.push(order_date);
+      paramIndex++;
+    }
+
+    if (conditions.length > 0) {
+      baseQuery += " WHERE " + conditions.join(" AND ");
+    }
+
+    baseQuery += 
+      " GROUP BY o.order_id, u.full_name, o.order_date, o.submitted_at " +
+      " ORDER BY o.submitted_at DESC";
+
+    const result = await pool.query(baseQuery, params);
     res.json(result.rows);
   } catch (err) {
     res.status(500).json({ msg: 'Server error', error: err.message });

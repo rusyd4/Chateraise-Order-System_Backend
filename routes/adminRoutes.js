@@ -20,5 +20,6 @@ router.delete('/branches/:branch_id', adminController.deleteBranch);
 
 // Order Management Routes
 router.get('/orders', adminController.getAllOrders);
+router.get('/orders/filter', adminController.getOrdersByBranchAndDate);
 
 module.exports = router;

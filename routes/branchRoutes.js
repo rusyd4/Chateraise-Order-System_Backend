@@ -15,6 +15,7 @@ router.post('/orders', branchController.createOrder);
 router.get('/orders', branchController.getBranchOrders);
 
 // Profile management
+router.get('/profile', branchController.getBranchProfile);
 router.put('/profile', branchController.updateBranchProfile);
 
 module.exports = router;
