@@ -1,4 +1,5 @@
 const pool = require('../db');
+const bcrypt = require('bcrypt');
 
 // Food Menu CRUD Operations
 exports.getAllFoodItems = async (req, res) => {
@@ -50,24 +51,37 @@ exports.deleteFoodItem = async (req, res) => {
   }
 };
 
-// Branch Store Management
+// GET /admin/branches
 exports.getAllBranches = async (req, res) => {
   try {
-    const result = await pool.query("SELECT user_id, full_name, email, created_at FROM users WHERE role = 'branch_store'");
+    const result = await pool.query("SELECT user_id, full_name, email, branch_address, created_at FROM users WHERE role = 'branch_store'");
     res.json(result.rows);
   } catch (err) {
     res.status(500).json({ msg: 'Server error', error: err.message });
   }
 };
 
+// PUT /admin/branches/:branch_id
 exports.updateBranch = async (req, res) => {
   const { branch_id } = req.params;
-  const { full_name, email } = req.body;
+  let { full_name, email, password_hash, branch_address } = req.body;
   try {
-    const result = await pool.query(
-      'UPDATE users SET full_name = $1, email = $2 WHERE user_id = $3 AND role = $4 RETURNING user_id, full_name, email',
-      [full_name, email, branch_id, 'branch_store']
-    );
+    let query = '';
+    let params = [];
+    const saltRounds = 10;
+
+    if (password_hash && password_hash.trim() !== '') {
+      password_hash = await bcrypt.hash(password_hash, saltRounds);
+      query = 'UPDATE users SET full_name = $1, email = $2, password_hash = $3, branch_address = $4 WHERE user_id = $5 AND role = $6 RETURNING user_id, full_name, email, password_hash, branch_address';
+      params = [full_name, email, password_hash, branch_address, branch_id, 'branch_store'];
+    } else {
+      // Do not update password_hash if blank or not provided
+      query = 'UPDATE users SET full_name = $1, email = $2, branch_address = $3 WHERE user_id = $4 AND role = $5 RETURNING user_id, full_name, email, password_hash, branch_address';
+      params = [full_name, email, branch_address, branch_id, 'branch_store'];
+    }
+
+    const result = await pool.query(query, params);
+
     if (result.rows.length === 0) {
       return res.status(404).json({ msg: 'Branch not found' });
     }
@@ -77,10 +91,11 @@ exports.updateBranch = async (req, res) => {
   }
 };
 
+// DELETE /admin/branches/:branch_id
 exports.deleteBranch = async (req, res) => {
   const { branch_id } = req.params;
   try {
-    await pool.query('DELETE FROM users WHERE user_id = $1 AND role = $2', [branch_id, 'branch_store']);
+    await pool.query('DELETE FROM users WHERE user_id = $1', [branch_id]);
     res.json({ msg: 'Branch deleted successfully' });
   } catch (err) {
     res.status(500).json({ msg: 'Server error', error: err.message });

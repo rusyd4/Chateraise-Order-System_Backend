@@ -11,6 +11,7 @@ const jwt = require('jsonwebtoken');
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
  */
+// POST /auth/register
 exports.register = async (req, res) => {
   const { full_name, email, password, role } = req.body;
   if (!full_name || !email || !password || !role) return res.status(400).json({ msg: 'All fields required' });
