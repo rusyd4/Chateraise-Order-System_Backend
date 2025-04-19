@@ -12,7 +12,6 @@ exports.getAvailableFoodItems = async (req, res) => {
   }
 };
 
-// Create new order
 exports.createOrder = async (req, res) => {
   const { order_date, items } = req.body;
   const branch_id = req.user.user_id;
@@ -21,7 +20,29 @@ exports.createOrder = async (req, res) => {
     // Start transaction
     await pool.query('BEGIN');
 
-    // Create order
+    // Check if an order already exists for the branch on the given order_date
+    const existingOrderRes = await pool.query(
+      'SELECT order_id FROM orders WHERE branch_id = $1 AND order_date = $2',
+      [branch_id, order_date]
+    );
+
+    if (existingOrderRes.rows.length > 0) {
+      const existingOrderId = existingOrderRes.rows[0].order_id;
+
+      // Delete existing order items
+      await pool.query(
+        'DELETE FROM order_items WHERE order_id = $1',
+        [existingOrderId]
+      );
+
+      // Delete existing order
+      await pool.query(
+        'DELETE FROM orders WHERE order_id = $1',
+        [existingOrderId]
+      );
+    }
+
+    // Create new order
     const orderRes = await pool.query(
       'INSERT INTO orders (branch_id, order_date) VALUES ($1, $2) RETURNING order_id',
       [branch_id, order_date]
@@ -45,6 +66,7 @@ exports.createOrder = async (req, res) => {
 };
 
 // Get branch's orders
+// GET /branch/orders
 exports.getBranchOrders = async (req, res) => {
   const branch_id = req.user.user_id;
   try {
