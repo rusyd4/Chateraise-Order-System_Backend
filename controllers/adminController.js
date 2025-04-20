@@ -130,7 +130,7 @@ exports.getOrdersByBranchAndDate = async (req, res) => {
 
   try {
     let baseQuery = 
-      "SELECT o.order_id, u.full_name AS branch_name, o.order_date, o.submitted_at, " +
+      "SELECT o.order_id, u.full_name AS branch_name, u.branch_address, o.order_date, o.submitted_at, " +
       "json_agg(json_build_object( " +
       "'food_name', f.food_name, " +
       "'quantity', oi.quantity, " +
@@ -162,7 +162,7 @@ exports.getOrdersByBranchAndDate = async (req, res) => {
     }
 
     baseQuery += 
-      " GROUP BY o.order_id, u.full_name, o.order_date, o.submitted_at " +
+      " GROUP BY o.order_id, u.full_name, u.branch_address, o.order_date, o.submitted_at " +
       " ORDER BY o.submitted_at DESC";
 
     const result = await pool.query(baseQuery, params);
