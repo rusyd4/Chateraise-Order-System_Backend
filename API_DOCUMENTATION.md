@@ -81,7 +81,7 @@ All branch routes require authentication and branch_store role verification.
 - POST /orders
   - Description: Create a new order.
   - Controller Function: `branchController.createOrder`
-  - Request Body: `{ order_date, items }`
+  - Request Body: `{ delivery_date, items }`
   - Response: Created order ID and success message.
 
 - GET /orders

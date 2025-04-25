@@ -106,7 +106,7 @@ exports.deleteBranch = async (req, res) => {
 exports.getAllOrders = async (req, res) => {
   try {
     const result = await pool.query(
-      "SELECT o.order_id, u.full_name AS branch_name, o.order_date, o.submitted_at, " +
+      "SELECT o.order_id, u.full_name AS branch_name, o.delivery_date, o.order_date, " +
       "json_agg(json_build_object( " +
       "'food_name', f.food_name, " +
       "'quantity', oi.quantity, " +
@@ -116,8 +116,8 @@ exports.getAllOrders = async (req, res) => {
       "JOIN users u ON o.branch_id = u.user_id " +
       "JOIN order_items oi ON o.order_id = oi.order_id " +
       "JOIN food_items f ON oi.food_id = f.food_id " +
-      "GROUP BY o.order_id, u.full_name, o.order_date, o.submitted_at " +
-      "ORDER BY o.submitted_at DESC"
+      "GROUP BY o.order_id, u.full_name, o.delivery_date, o.order_date " +
+      "ORDER BY o.order_date DESC"
     );
     res.json(result.rows);
   } catch (err) {
@@ -126,11 +126,11 @@ exports.getAllOrders = async (req, res) => {
 };
 
 exports.getOrdersByBranchAndDate = async (req, res) => {
-  const { branch_name, order_date } = req.query;
+  const { branch_name, delivery_date } = req.query;
 
   try {
     let baseQuery = 
-      "SELECT o.order_id, u.full_name AS branch_name, u.branch_address, o.order_date, o.submitted_at, " +
+      "SELECT o.order_id, u.full_name AS branch_name, u.branch_address, o.delivery_date, o.order_date, " +
       "json_agg(json_build_object( " +
       "'food_name', f.food_name, " +
       "'quantity', oi.quantity, " +
@@ -151,9 +151,9 @@ exports.getOrdersByBranchAndDate = async (req, res) => {
       paramIndex++;
     }
 
-    if (order_date) {
-      conditions.push("o.order_date = $" + paramIndex);
-      params.push(order_date);
+    if (delivery_date) {
+      conditions.push("o.delivery_date = $" + paramIndex);
+      params.push(delivery_date);
       paramIndex++;
     }
 
@@ -162,8 +162,8 @@ exports.getOrdersByBranchAndDate = async (req, res) => {
     }
 
     baseQuery += 
-      " GROUP BY o.order_id, u.full_name, u.branch_address, o.order_date, o.submitted_at " +
-      " ORDER BY o.submitted_at DESC";
+      " GROUP BY o.order_id, u.full_name, u.branch_address, o.delivery_date, o.order_date " +
+      " ORDER BY o.order_date DESC";
 
     const result = await pool.query(baseQuery, params);
     res.json(result.rows);

@@ -13,17 +13,17 @@ exports.getAvailableFoodItems = async (req, res) => {
 };
 
 exports.createOrder = async (req, res) => {
-  const { order_date, items } = req.body;
+  const { delivery_date, items } = req.body;
   const branch_id = req.user.user_id;
 
   try {
     // Start transaction
     await pool.query('BEGIN');
 
-    // Check if an order already exists for the branch on the given order_date
+    // Check if an order already exists for the branch on the given delivery_date
     const existingOrderRes = await pool.query(
-      'SELECT order_id FROM orders WHERE branch_id = $1 AND order_date = $2',
-      [branch_id, order_date]
+      'SELECT order_id FROM orders WHERE branch_id = $1 AND delivery_date = $2',
+      [branch_id, delivery_date]
     );
 
     if (existingOrderRes.rows.length > 0) {
@@ -44,8 +44,8 @@ exports.createOrder = async (req, res) => {
 
     // Create new order
     const orderRes = await pool.query(
-      'INSERT INTO orders (branch_id, order_date) VALUES ($1, $2) RETURNING order_id',
-      [branch_id, order_date]
+      'INSERT INTO orders (branch_id, delivery_date) VALUES ($1, $2) RETURNING order_id',
+      [branch_id, delivery_date]
     );
     const order_id = orderRes.rows[0].order_id;
 
@@ -71,7 +71,7 @@ exports.getBranchOrders = async (req, res) => {
   const branch_id = req.user.user_id;
   try {
     const result = await pool.query(
-      `SELECT o.order_id, o.order_date, o.submitted_at,
+      `SELECT o.order_id, o.delivery_date, o.order_date,
         json_agg(json_build_object(
           'food_name', f.food_name,
           'quantity', oi.quantity,
@@ -81,8 +81,8 @@ exports.getBranchOrders = async (req, res) => {
       JOIN order_items oi ON o.order_id = oi.order_id
       JOIN food_items f ON oi.food_id = f.food_id
       WHERE o.branch_id = $1
-      GROUP BY o.order_id, o.order_date, o.submitted_at
-      ORDER BY o.submitted_at DESC`,
+      GROUP BY o.order_id, o.delivery_date, o.order_date
+      ORDER BY o.order_date DESC`,
       [branch_id]
     );
     res.json(result.rows);

@@ -20,8 +20,8 @@ CREATE TABLE food_items (
 CREATE TABLE orders (
     order_id SERIAL PRIMARY KEY,
     branch_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
-    order_date DATE NOT NULL,
-    submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    delivery_date DATE NOT NULL,
+    order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE order_items (
