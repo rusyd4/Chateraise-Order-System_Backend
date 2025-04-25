@@ -9,7 +9,7 @@ CREATE TABLE users (
 );
 
 CREATE TABLE food_items (
-    food_id SERIAL PRIMARY KEY,
+    food_id VARCHAR(6) PRIMARY KEY,
     food_name VARCHAR(100) NOT NULL,
     description TEXT,
     price DECIMAL(10, 2) NOT NULL,
@@ -27,6 +27,6 @@ CREATE TABLE orders (
 CREATE TABLE order_items (
     order_item_id SERIAL PRIMARY KEY,
     order_id INTEGER NOT NULL REFERENCES orders(order_id) ON DELETE CASCADE,
-    food_id INTEGER NOT NULL REFERENCES food_items(food_id),
+    food_id VARCHAR(6) NOT NULL REFERENCES food_items(food_id),
     quantity INTEGER NOT NULL CHECK (quantity > 0)
 );

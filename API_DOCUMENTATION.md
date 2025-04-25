@@ -27,7 +27,7 @@ All admin routes require authentication and admin role verification.
 - POST /food-items
   - Description: Create a new food item.
   - Controller Function: `adminController.createFoodItem`
-  - Request Body: `{ food_name, description, price }`
+  - Request Body: `{ food_id, food_name, description, price }`
   - Response: Created food item.
 
 - PUT /food-items/:food_id

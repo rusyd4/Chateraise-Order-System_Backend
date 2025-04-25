@@ -12,11 +12,11 @@ exports.getAllFoodItems = async (req, res) => {
 };
 
 exports.createFoodItem = async (req, res) => {
-  const { food_name, description, price } = req.body;
+  const { food_id, food_name, description, price } = req.body;
   try {
     const result = await pool.query(
-      'INSERT INTO food_items (food_name, description, price) VALUES ($1, $2, $3) RETURNING *',
-      [food_name, description, price]
+      'INSERT INTO food_items (food_id, food_name, description, price) VALUES ($1, $2, $3, $4) RETURNING *',
+      [food_id, food_name, description, price]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
@@ -25,12 +25,24 @@ exports.createFoodItem = async (req, res) => {
 };
 
 exports.updateFoodItem = async (req, res) => {
-  const { food_id } = req.params;
-  const { food_name, description, price, is_available } = req.body;
+  const { food_id, food_name, description, price, is_available } = req.body;
   try {
+    // If food_id is being changed, check if current food_id is referenced in order_items
+    if (food_id && food_id !== req.params.food_id) {
+      const checkResult = await pool.query(
+        'SELECT 1 FROM order_items WHERE food_id = $1 LIMIT 1',
+        [req.params.food_id]
+      );
+      if (checkResult.rows.length > 0) {
+        return res.status(409).json({
+          msg: 'Cannot update food_id because it is referenced in existing orders'
+        });
+      }
+    }
+
     const result = await pool.query(
-      'UPDATE food_items SET food_name = $1, description = $2, price = $3, is_available = $4 WHERE food_id = $5 RETURNING *',
-      [food_name, description, price, is_available, food_id]
+      'UPDATE food_items SET food_id = $1, food_name = $2, description = $3, price = $4, is_available = $5 WHERE food_id = $6 RETURNING *',
+      [food_id, food_name, description, price, is_available, req.params.food_id]
     );
     if (result.rows.length === 0) {
       return res.status(404).json({ msg: 'Food item not found' });
@@ -44,6 +56,17 @@ exports.updateFoodItem = async (req, res) => {
 exports.deleteFoodItem = async (req, res) => {
   const { food_id } = req.params;
   try {
+    // Check if the food item is referenced in order_items
+    const checkResult = await pool.query(
+      'SELECT 1 FROM order_items WHERE food_id = $1 LIMIT 1',
+      [food_id]
+    );
+    if (checkResult.rows.length > 0) {
+      return res.status(409).json({
+        msg: 'Cannot delete food item because it is referenced in existing orders'
+      });
+    }
+
     await pool.query('DELETE FROM food_items WHERE food_id = $1', [food_id]);
     res.json({ msg: 'Food item deleted successfully' });
   } catch (err) {
