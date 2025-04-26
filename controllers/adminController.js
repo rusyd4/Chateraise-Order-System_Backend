@@ -77,7 +77,7 @@ exports.deleteFoodItem = async (req, res) => {
 // GET /admin/branches
 exports.getAllBranches = async (req, res) => {
   try {
-    const result = await pool.query("SELECT user_id, full_name, email, branch_address, created_at FROM users WHERE role = 'branch_store'");
+    const result = await pool.query("SELECT user_id, full_name, email, branch_address, delivery_time, created_at FROM users WHERE role = 'branch_store'");
     res.json(result.rows);
   } catch (err) {
     res.status(500).json({ msg: 'Server error', error: err.message });
@@ -87,7 +87,7 @@ exports.getAllBranches = async (req, res) => {
 // PUT /admin/branches/:branch_id
 exports.updateBranch = async (req, res) => {
   const { branch_id } = req.params;
-  let { full_name, email, password_hash, branch_address } = req.body;
+  let { full_name, email, password_hash, branch_address, delivery_time } = req.body;
   try {
     let query = '';
     let params = [];
@@ -95,12 +95,12 @@ exports.updateBranch = async (req, res) => {
 
     if (password_hash && password_hash.trim() !== '') {
       password_hash = await bcrypt.hash(password_hash, saltRounds);
-      query = 'UPDATE users SET full_name = $1, email = $2, password_hash = $3, branch_address = $4 WHERE user_id = $5 AND role = $6 RETURNING user_id, full_name, email, password_hash, branch_address';
-      params = [full_name, email, password_hash, branch_address, branch_id, 'branch_store'];
+      query = 'UPDATE users SET full_name = $1, email = $2, password_hash = $3, branch_address = $4, delivery_time = $5 WHERE user_id = $6 AND role = $7 RETURNING user_id, full_name, email, password_hash, branch_address, delivery_time';
+      params = [full_name, email, password_hash, branch_address, delivery_time, branch_id, 'branch_store'];
     } else {
       // Do not update password_hash if blank or not provided
-      query = 'UPDATE users SET full_name = $1, email = $2, branch_address = $3 WHERE user_id = $4 AND role = $5 RETURNING user_id, full_name, email, password_hash, branch_address';
-      params = [full_name, email, branch_address, branch_id, 'branch_store'];
+      query = 'UPDATE users SET full_name = $1, email = $2, branch_address = $3, delivery_time = $4 WHERE user_id = $5 AND role = $6 RETURNING user_id, full_name, email, password_hash, branch_address, delivery_time';
+      params = [full_name, email, branch_address, delivery_time, branch_id, 'branch_store'];
     }
 
     const result = await pool.query(query, params);
@@ -153,8 +153,9 @@ exports.getOrdersByBranchAndDate = async (req, res) => {
 
   try {
     let baseQuery = 
-      "SELECT o.order_id, u.full_name AS branch_name, u.branch_address, o.delivery_date, o.order_date, " +
+      "SELECT o.order_id, u.full_name AS branch_name, u.branch_address, u.delivery_time, o.delivery_date, o.order_date, " +
       "json_agg(json_build_object( " +
+      "'food_id', f.food_id, " +
       "'food_name', f.food_name, " +
       "'quantity', oi.quantity, " +
       "'price', f.price " +
@@ -185,7 +186,7 @@ exports.getOrdersByBranchAndDate = async (req, res) => {
     }
 
     baseQuery += 
-      " GROUP BY o.order_id, u.full_name, u.branch_address, o.delivery_date, o.order_date " +
+      " GROUP BY o.order_id, u.full_name, u.branch_address, u.delivery_time, o.delivery_date, o.order_date " +
       " ORDER BY o.order_date DESC";
 
     const result = await pool.query(baseQuery, params);

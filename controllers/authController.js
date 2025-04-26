@@ -13,7 +13,7 @@ const jwt = require('jsonwebtoken');
  */
 // POST /auth/register
 exports.register = async (req, res) => {
-  const { full_name, email, password, role, branch_address } = req.body;
+  const { full_name, email, password, role, branch_address, delivery_time } = req.body;
   if (!full_name || !email || !password || !role || !branch_address) return res.status(400).json({ msg: 'All fields required' });
 
   try {
@@ -22,8 +22,8 @@ exports.register = async (req, res) => {
 
     const hash = await bcrypt.hash(password, 10);
     await pool.query(
-      'INSERT INTO users (full_name, email, password_hash, role, branch_address) VALUES ($1, $2, $3, $4, $5)',
-      [full_name, email, hash, role, branch_address]
+      'INSERT INTO users (full_name, email, password_hash, role, branch_address, delivery_time) VALUES ($1, $2, $3, $4, $5, $6)',
+      [full_name, email, hash, role, branch_address, delivery_time]
     );
 
     res.status(201).json({ msg: 'User registered successfully' });

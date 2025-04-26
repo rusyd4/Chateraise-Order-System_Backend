@@ -5,6 +5,7 @@ CREATE TABLE users (
     password_hash TEXT NOT NULL,
     role VARCHAR(20) NOT NULL CHECK (role IN ('admin', 'branch_store')),
     branch_address TEXT,
+    delivery_time VARCHAR(20),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
