@@ -1,16 +1,7 @@
-/**
- * Controller for user authentication
- */
-
 const pool = require('../db');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
-/**
- * Register a new user
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- */
 // POST /auth/register
 exports.register = async (req, res) => {
   const { full_name, email, password, role, branch_address, delivery_time } = req.body;
@@ -32,11 +23,7 @@ exports.register = async (req, res) => {
   }
 };
 
-/**
- * Login a user and return JWT token
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- */
+// POST /auth/login
 exports.login = async (req, res) => {
   const { email, password } = req.body;
   try {

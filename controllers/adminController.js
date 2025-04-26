@@ -11,6 +11,7 @@ exports.getAllFoodItems = async (req, res) => {
   }
 };
 
+// POST /admin/food-items
 exports.createFoodItem = async (req, res) => {
   const { food_id, food_name, description, price } = req.body;
   try {
@@ -24,6 +25,7 @@ exports.createFoodItem = async (req, res) => {
   }
 };
 
+// PUT /admin/food-items/:food_id
 exports.updateFoodItem = async (req, res) => {
   const { food_id, food_name, description, price, is_available } = req.body;
   try {
@@ -53,6 +55,7 @@ exports.updateFoodItem = async (req, res) => {
   }
 };
 
+// DELETE /admin/food-items/:food_id
 exports.deleteFoodItem = async (req, res) => {
   const { food_id } = req.params;
   try {
@@ -126,6 +129,7 @@ exports.deleteBranch = async (req, res) => {
 };
 
 // Order Management
+// GET /admin/orders
 exports.getAllOrders = async (req, res) => {
   try {
     const result = await pool.query(
@@ -148,6 +152,7 @@ exports.getAllOrders = async (req, res) => {
   }
 };
 
+// GET /admin/orders/filter
 exports.getOrdersByBranchAndDate = async (req, res) => {
   const { branch_name, delivery_date } = req.query;
 

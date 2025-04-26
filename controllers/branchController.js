@@ -1,6 +1,7 @@
 const pool = require('../db');
 
 // Get available food items
+// GET /branch/food-items
 exports.getAvailableFoodItems = async (req, res) => {
   try {
     const result = await pool.query(
@@ -12,6 +13,7 @@ exports.getAvailableFoodItems = async (req, res) => {
   }
 };
 
+// POST /branch/food-items
 exports.createOrder = async (req, res) => {
   const { delivery_date, items } = req.body;
   const branch_id = req.user.user_id;
@@ -65,7 +67,6 @@ exports.createOrder = async (req, res) => {
   }
 };
 
-// Get branch's orders
 // GET /branch/orders
 exports.getBranchOrders = async (req, res) => {
   const branch_id = req.user.user_id;
@@ -92,6 +93,7 @@ exports.getBranchOrders = async (req, res) => {
 };
 
 // Update branch profile (own account only)
+// PUT /branch/profile
 exports.updateBranchProfile = async (req, res) => {
   const branch_id = req.user.user_id;
   const { full_name, email, branch_address, delivery_time } = req.body;
@@ -107,6 +109,7 @@ exports.updateBranchProfile = async (req, res) => {
 };
 
 // Get branch profile (own account only)
+// GET /branch/profile
 exports.getBranchProfile = async (req, res) => {
   const branch_id = req.user.user_id;
   try {
