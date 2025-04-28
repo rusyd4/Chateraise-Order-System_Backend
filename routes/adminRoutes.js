@@ -21,6 +21,8 @@ router.delete('/branches/:branch_id', adminController.deleteBranch);
 // Order Management Routes
 router.get('/orders', adminController.getAllOrders);
 router.get('/orders/filter', adminController.getOrdersByBranchAndDate);
+router.get('/orders/pending', adminController.getPendingOrders);
+router.get('/orders/in-progress', adminController.getInProgressOrders);
 router.put('/orders/:order_id/status/in-progress', adminController.updateOrderStatusToInProgress);
 
 module.exports = router;

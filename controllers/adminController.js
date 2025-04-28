@@ -230,3 +230,59 @@ exports.updateOrderStatusToInProgress = async (req, res) => {
     res.status(500).json({ msg: 'Server error', error: err.message });
   }
 };
+
+// GET /admin/orders/pending
+exports.getPendingOrders = async (req, res) => {
+  try {
+    const result = await pool.query(
+      "SELECT o.order_id, u.full_name AS branch_name, o.delivery_date, o.order_date, " +
+      "json_agg(json_build_object( " +
+      "'food_name', f.food_name, " +
+      "'quantity', oi.quantity, " +
+      "'price', f.price " +
+      ")) AS items " +
+      "FROM orders o " +
+      "JOIN users u ON o.branch_id = u.user_id " +
+      "JOIN order_items oi ON o.order_id = oi.order_id " +
+      "JOIN food_items f ON oi.food_id = f.food_id " +
+      "WHERE o.order_status = 'Pending' " +
+      "GROUP BY o.order_id, u.full_name, o.delivery_date, o.order_date " +
+      "ORDER BY o.order_date DESC"
+    );
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ msg: 'Server error', error: err.message });
+  }
+};
+
+// GET /admin/orders/in-progress
+exports.getInProgressOrders = async (req, res) => {
+  try {
+    const result = await pool.query(
+      "SELECT o.order_id, u.full_name AS branch_name, o.delivery_date, o.order_date, o.order_status, " +
+      "json_agg(json_build_object( " +
+      "'food_name', f.food_name, " +
+      "'quantity', oi.quantity, " +
+      "'price', f.price " +
+      ")) AS items " +
+      "FROM orders o " +
+      "JOIN users u ON o.branch_id = u.user_id " +
+      "JOIN order_items oi ON o.order_id = oi.order_id " +
+      "JOIN food_items f ON oi.food_id = f.food_id " +
+      "WHERE o.order_status = 'In-progress' " +
+      "GROUP BY o.order_id, u.full_name, o.delivery_date, o.order_date, o.order_status " +
+      "ORDER BY o.order_date DESC"
+    );
+
+    // Generate QR code for orders with status 'In-progress'
+    const ordersWithQr = await Promise.all(result.rows.map(async (order) => {
+      const qrData = `${req.protocol}://${req.get('host')}/branch/orders/${order.order_id}/status/finished`;
+      order.qrCodeImageUrl = await QRCode.toDataURL(qrData);
+      return order;
+    }));
+
+    res.json(ordersWithQr);
+  } catch (err) {
+    res.status(500).json({ msg: 'Server error', error: err.message });
+  }
+};
