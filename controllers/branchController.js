@@ -147,3 +147,34 @@ exports.getBranchProfile = async (req, res) => {
     res.status(500).json({ msg: 'Server error', error: err.message });
   }
 };
+
+// GET /branch/orders/:order_id
+exports.getOrderDetailsById = async (req, res) => {
+  const branch_id = req.user.user_id;
+  const { order_id } = req.params;
+
+  try {
+    const result = await pool.query(
+      `SELECT o.order_id, o.delivery_date, o.order_date,
+        json_agg(json_build_object(
+          'food_name', f.food_name,
+          'quantity', oi.quantity,
+          'price', f.price
+        )) AS items
+      FROM orders o
+      JOIN order_items oi ON o.order_id = oi.order_id
+      JOIN food_items f ON oi.food_id = f.food_id
+      WHERE o.branch_id = $1 AND o.order_id = $2
+      GROUP BY o.order_id, o.delivery_date, o.order_date`,
+      [branch_id, order_id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ msg: 'Order not found' });
+    }
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ msg: 'Server error', error: err.message });
+  }
+};

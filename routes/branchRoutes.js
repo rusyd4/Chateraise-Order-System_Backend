@@ -13,6 +13,7 @@ router.get('/food-items', branchController.getAvailableFoodItems);
 // Order management
 router.post('/orders', branchController.createOrder);
 router.get('/orders', branchController.getBranchOrders);
+router.get('/orders/:order_id', branchController.getOrderDetailsById);
 
 // Profile management
 router.get('/profile', branchController.getBranchProfile);
