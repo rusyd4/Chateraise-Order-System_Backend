@@ -199,7 +199,7 @@ exports.getOrdersByBranchAndDate = async (req, res) => {
 
     // Generate QR code for orders with status 'In-progress'
     const ordersWithQr = await Promise.all(result.rows.map(async (order) => {
-    const qrData = `${req.protocol}://${req.get('host')}/branch/orders/${order.order_id}/status/finished`;
+    const qrData = `${order.order_id}`;
     order.qrCodeImageUrl = await QRCode.toDataURL(qrData);
     return order;
     }));
@@ -274,14 +274,7 @@ exports.getInProgressOrders = async (req, res) => {
       "ORDER BY o.order_date DESC"
     );
 
-    // Generate QR code for orders with status 'In-progress'
-    const ordersWithQr = await Promise.all(result.rows.map(async (order) => {
-      const qrData = `${req.protocol}://${req.get('host')}/branch/orders/${order.order_id}/status/finished`;
-      order.qrCodeImageUrl = await QRCode.toDataURL(qrData);
-      return order;
-    }));
-
-    res.json(ordersWithQr);
+    res.json(result.rows);
   } catch (err) {
     res.status(500).json({ msg: 'Server error', error: err.message });
   }
