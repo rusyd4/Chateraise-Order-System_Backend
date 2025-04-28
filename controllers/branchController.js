@@ -92,6 +92,28 @@ exports.getBranchOrders = async (req, res) => {
   }
 };
 
+// PUT /branch/orders/:order_id/status/finished
+exports.updateOrderStatusToFinished = async (req, res) => {
+  const branch_id = req.user.user_id;
+  const { order_id } = req.params;
+
+  try {
+    // Update order_status from 'In-progress' to 'Finished' only for orders belonging to this branch
+    const result = await pool.query(
+      "UPDATE orders SET order_status = 'Finished' WHERE order_id = $1 AND order_status = 'In-progress' AND branch_id = $2 RETURNING *",
+      [order_id, branch_id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(400).json({ msg: 'Order not found, status is not In-progress, or you do not have permission' });
+    }
+
+    res.json({ msg: 'Order status updated to Finished', order: result.rows[0] });
+  } catch (err) {
+    res.status(500).json({ msg: 'Server error', error: err.message });
+  }
+};
+
 // Update branch profile (own account only)
 // PUT /branch/profile
 exports.updateBranchProfile = async (req, res) => {

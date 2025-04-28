@@ -18,4 +18,7 @@ router.get('/orders', branchController.getBranchOrders);
 router.get('/profile', branchController.getBranchProfile);
 router.put('/profile', branchController.updateBranchProfile);
 
+// Order status update
+router.put('/orders/:order_id/status/finished', branchController.updateOrderStatusToFinished);
+
 module.exports = router;

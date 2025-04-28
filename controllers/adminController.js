@@ -1,5 +1,6 @@
 const pool = require('../db');
 const bcrypt = require('bcrypt');
+const QRCode = require('qrcode');
 
 // Food Menu CRUD Operations
 exports.getAllFoodItems = async (req, res) => {
@@ -158,7 +159,7 @@ exports.getOrdersByBranchAndDate = async (req, res) => {
 
   try {
     let baseQuery = 
-      "SELECT o.order_id, u.full_name AS branch_name, u.branch_address, u.delivery_time, o.delivery_date, o.order_date, " +
+      "SELECT o.order_id, u.full_name AS branch_name, u.branch_address, u.delivery_time, o.delivery_date, o.order_date, o.order_status, " +
       "json_agg(json_build_object( " +
       "'food_id', f.food_id, " +
       "'food_name', f.food_name, " +
@@ -191,11 +192,40 @@ exports.getOrdersByBranchAndDate = async (req, res) => {
     }
 
     baseQuery += 
-      " GROUP BY o.order_id, u.full_name, u.branch_address, u.delivery_time, o.delivery_date, o.order_date " +
+      " GROUP BY o.order_id, u.full_name, u.branch_address, u.delivery_time, o.delivery_date, o.order_date, o.order_status " +
       " ORDER BY o.order_date DESC";
 
     const result = await pool.query(baseQuery, params);
-    res.json(result.rows);
+
+    // Generate QR code for orders with status 'In-progress'
+    const ordersWithQr = await Promise.all(result.rows.map(async (order) => {
+    const qrData = `${req.protocol}://${req.get('host')}/branch/orders/${order.order_id}/status/finished`;
+    order.qrCodeImageUrl = await QRCode.toDataURL(qrData);
+    return order;
+    }));
+
+    res.json(ordersWithQr);
+  } catch (err) {
+    res.status(500).json({ msg: 'Server error', error: err.message });
+  }
+};
+
+// PUT /admin/orders/:order_id/status/in-progress
+exports.updateOrderStatusToInProgress = async (req, res) => {
+  const { order_id } = req.params;
+
+  try {
+    // Update order_status from 'Pending' to 'In-progress' only
+    const result = await pool.query(
+      "UPDATE orders SET order_status = 'In-progress' WHERE order_id = $1 AND order_status = 'Pending' RETURNING *",
+      [order_id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(400).json({ msg: 'Order not found or status is not Pending' });
+    }
+
+    res.json({ msg: 'Order status updated to In-progress', order: result.rows[0] });
   } catch (err) {
     res.status(500).json({ msg: 'Server error', error: err.message });
   }

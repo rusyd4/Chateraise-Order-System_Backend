@@ -22,7 +22,8 @@ CREATE TABLE orders (
     order_id SERIAL PRIMARY KEY,
     branch_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
     delivery_date DATE NOT NULL,
-    order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    order_status VARCHAR(20) NOT NULL DEFAULT 'Pending' CHECK (order_status IN ('Pending', 'In-progress', 'Finished'))
 );
 
 CREATE TABLE order_items (
