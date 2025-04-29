@@ -72,7 +72,7 @@ exports.getBranchOrders = async (req, res) => {
   const branch_id = req.user.user_id;
   try {
     const result = await pool.query(
-      `SELECT o.order_id, o.delivery_date, o.order_date,
+      `SELECT o.order_id, o.delivery_date, o.order_date, o.order_status,
         json_agg(json_build_object(
           'food_name', f.food_name,
           'quantity', oi.quantity,
@@ -82,7 +82,7 @@ exports.getBranchOrders = async (req, res) => {
       JOIN order_items oi ON o.order_id = oi.order_id
       JOIN food_items f ON oi.food_id = f.food_id
       WHERE o.branch_id = $1
-      GROUP BY o.order_id, o.delivery_date, o.order_date
+      GROUP BY o.order_id, o.delivery_date, o.order_date, o.order_status
       ORDER BY o.order_date DESC`,
       [branch_id]
     );
@@ -155,7 +155,7 @@ exports.getOrderDetailsById = async (req, res) => {
 
   try {
     const result = await pool.query(
-      `SELECT o.order_id, o.delivery_date, o.order_date,
+      `SELECT o.order_id, o.delivery_date, o.order_date, o.order_status,
         json_agg(json_build_object(
           'food_name', f.food_name,
           'quantity', oi.quantity,
@@ -165,7 +165,7 @@ exports.getOrderDetailsById = async (req, res) => {
       JOIN order_items oi ON o.order_id = oi.order_id
       JOIN food_items f ON oi.food_id = f.food_id
       WHERE o.branch_id = $1 AND o.order_id = $2
-      GROUP BY o.order_id, o.delivery_date, o.order_date`,
+      GROUP BY o.order_id, o.delivery_date, o.order_date, o.order_status`,
       [branch_id, order_id]
     );
 
