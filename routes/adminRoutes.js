@@ -23,6 +23,7 @@ router.get('/orders', adminController.getAllOrders);
 router.get('/orders/filter', adminController.getOrdersByBranchAndDate);
 router.get('/orders/pending', adminController.getPendingOrders);
 router.get('/orders/in-progress', adminController.getInProgressOrders);
+router.get('/orders/finished', adminController.getFinishedOrders);
 router.put('/orders/:order_id/status/in-progress', adminController.updateOrderStatusToInProgress);
 
 module.exports = router;
