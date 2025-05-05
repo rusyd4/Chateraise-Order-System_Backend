@@ -15,6 +15,7 @@ router.delete('/food-items/:food_id', adminController.deleteFoodItem);
 
 // Branch Management Routes
 router.get('/branches', adminController.getAllBranches);
+router.post('/branches', adminController.createBranch);
 router.put('/branches/:branch_id', adminController.updateBranch);
 router.delete('/branches/:branch_id', adminController.deleteBranch);
 

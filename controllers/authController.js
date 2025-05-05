@@ -2,27 +2,6 @@ const pool = require('../db');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
-// POST /auth/register
-exports.register = async (req, res) => {
-  const { full_name, email, password, role, branch_address, delivery_time } = req.body;
-  if (!full_name || !email || !password || !role || !branch_address) return res.status(400).json({ msg: 'All fields required' });
-
-  try {
-    const existing = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
-    if (existing.rows.length > 0) return res.status(409).json({ msg: 'Email already registered' });
-
-    const hash = await bcrypt.hash(password, 10);
-    await pool.query(
-      'INSERT INTO users (full_name, email, password_hash, role, branch_address, delivery_time) VALUES ($1, $2, $3, $4, $5, $6)',
-      [full_name, email, hash, role, branch_address, delivery_time]
-    );
-
-    res.status(201).json({ msg: 'User registered successfully' });
-  } catch (err) {
-    res.status(500).json({ msg: 'Server error', error: err.message });
-  }
-};
-
 // POST /auth/login
 exports.login = async (req, res) => {
   const { email, password } = req.body;

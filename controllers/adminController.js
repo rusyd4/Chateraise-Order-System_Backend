@@ -2,6 +2,38 @@ const pool = require('../db');
 const bcrypt = require('bcrypt');
 const QRCode = require('qrcode');
 
+// Helper function for consistent error response
+const handleError = (res, err, customMsg = 'Server error', statusCode = 500) => {
+  console.error(err);
+  return res.status(statusCode).json({ msg: customMsg, error: err.message });
+};
+
+// POST /admin/branches
+exports.createBranch = async (req, res) => {
+  const { full_name, email, password, role, branch_address, delivery_time } = req.body;
+  if (!full_name || !email || !password || !role || !branch_address) {
+    return res.status(400).json({ msg: 'All fields required: full_name, email, password, role, branch_address' });
+  }
+
+  try {
+    const existing = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    if (existing.rows.length > 0) {
+      return res.status(409).json({ msg: 'Email already registered' });
+    }
+
+    const hash = await bcrypt.hash(password, 10);
+    await pool.query(
+      'INSERT INTO users (full_name, email, password_hash, role, branch_address, delivery_time) VALUES ($1, $2, $3, $4, $5, $6)',
+      [full_name, email, hash, role, branch_address, delivery_time]
+    );
+
+    res.status(201).json({ msg: 'User registered successfully' });
+  } catch (err) {
+    return handleError(res, err);
+  }
+};
+
+
 // Food Menu CRUD Operations
 exports.getAllFoodItems = async (req, res) => {
   try {
