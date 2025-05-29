@@ -1,6 +1,29 @@
+// Added imports for file upload and file system
 const pool = require('../db');
 const bcrypt = require('bcrypt');
 const QRCode = require('qrcode');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+
+const uploadDir = path.join(__dirname, '../uploads/food_images');
+
+// Configure multer storage
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, uploadDir);
+  },
+  filename: function (req, file, cb) {
+    // Use food_name from body to create filename, sanitize it
+    const foodName = req.body.food_name || 'unknown_food';
+    const safeFoodName = foodName.replace(/\s+/g, '_').toLowerCase();
+    const ext = path.extname(file.originalname);
+    cb(null, `${safeFoodName}${ext}`);
+  }
+});
+
+exports.upload = multer({ storage: storage });
+
 
 // Helper function for consistent error response
 const handleError = (res, err, customMsg = 'Server error', statusCode = 500) => {
@@ -47,13 +70,24 @@ exports.getAllFoodItems = async (req, res) => {
 // POST /admin/food-items
 exports.createFoodItem = async (req, res) => {
   const { food_id, food_name, description, price } = req.body;
+  let food_image = null;
+  if (req.file) {
+    food_image = req.file.filename;
+  }
   try {
     const result = await pool.query(
-      'INSERT INTO food_items (food_id, food_name, description, price) VALUES ($1, $2, $3, $4) RETURNING *',
-      [food_id, food_name, description, price]
+      'INSERT INTO food_items (food_id, food_name, description, price, food_image) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+      [food_id, food_name, description, price, food_image]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
+    // If file was uploaded but DB insert failed, delete the uploaded file to avoid orphan files
+    if (food_image) {
+      const filePath = path.join(uploadDir, food_image);
+      fs.unlink(filePath, (unlinkErr) => {
+        if (unlinkErr) console.error('Failed to delete file after DB error:', unlinkErr);
+      });
+    }
     res.status(500).json({ msg: 'Server error', error: err.message });
   }
 };
@@ -61,6 +95,7 @@ exports.createFoodItem = async (req, res) => {
 // PUT /admin/food-items/:food_id
 exports.updateFoodItem = async (req, res) => {
   const { food_id, food_name, description, price, is_available } = req.body;
+  let newFoodImage = null;
   try {
     // If food_id is being changed, check if current food_id is referenced in order_items
     if (food_id && food_id !== req.params.food_id) {
@@ -75,15 +110,42 @@ exports.updateFoodItem = async (req, res) => {
       }
     }
 
-    const result = await pool.query(
-      'UPDATE food_items SET food_id = $1, food_name = $2, description = $3, price = $4, is_available = $5 WHERE food_id = $6 RETURNING *',
-      [food_id, food_name, description, price, is_available, req.params.food_id]
+    // Get current food item to check existing image
+    const currentResult = await pool.query(
+      'SELECT food_image FROM food_items WHERE food_id = $1',
+      [req.params.food_id]
     );
-    if (result.rows.length === 0) {
+    if (currentResult.rows.length === 0) {
       return res.status(404).json({ msg: 'Food item not found' });
     }
+    const currentImage = currentResult.rows[0].food_image;
+
+    if (req.file) {
+      newFoodImage = req.file.filename;
+    }
+
+    const result = await pool.query(
+      'UPDATE food_items SET food_id = $1, food_name = $2, description = $3, price = $4, is_available = $5, food_image = $6 WHERE food_id = $7 RETURNING *',
+      [food_id, food_name, description, price, is_available, newFoodImage || currentImage, req.params.food_id]
+    );
+
+    // If new image uploaded and old image exists and is different, delete old image file
+    if (newFoodImage && currentImage && currentImage !== newFoodImage) {
+      const oldImagePath = path.join(uploadDir, currentImage);
+      fs.unlink(oldImagePath, (err) => {
+        if (err) console.error('Failed to delete old image:', err);
+      });
+    }
+
     res.json(result.rows[0]);
   } catch (err) {
+    // If new image uploaded but DB update failed, delete the new uploaded file to avoid orphan files
+    if (newFoodImage) {
+      const newImagePath = path.join(uploadDir, newFoodImage);
+      fs.unlink(newImagePath, (unlinkErr) => {
+        if (unlinkErr) console.error('Failed to delete new image after DB error:', unlinkErr);
+      });
+    }
     res.status(500).json({ msg: 'Server error', error: err.message });
   }
 };
@@ -101,6 +163,21 @@ exports.deleteFoodItem = async (req, res) => {
       return res.status(409).json({
         msg: 'Cannot delete food item because it is referenced in existing orders'
       });
+    }
+
+    // Get current food item to check existing image
+    const currentResult = await pool.query(
+      'SELECT food_image FROM food_items WHERE food_id = $1',
+      [food_id]
+    );
+    if (currentResult.rows.length > 0) {
+      const currentImage = currentResult.rows[0].food_image;
+      if (currentImage) {
+        const imagePath = path.join(uploadDir, currentImage);
+        fs.unlink(imagePath, (err) => {
+          if (err) console.error('Failed to delete image file:', err);
+        });
+      }
     }
 
     await pool.query('DELETE FROM food_items WHERE food_id = $1', [food_id]);

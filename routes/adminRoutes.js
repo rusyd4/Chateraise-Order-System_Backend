@@ -8,9 +8,10 @@ router.use(authenticateToken);
 router.use(verifyRole('admin'));
 
 // Food Menu Routes
+const upload = adminController.upload;
 router.get('/food-items', adminController.getAllFoodItems);
-router.post('/food-items', adminController.createFoodItem);
-router.put('/food-items/:food_id', adminController.updateFoodItem);
+router.post('/food-items', upload.single('food_image'), adminController.createFoodItem);
+router.put('/food-items/:food_id', upload.single('food_image'), adminController.updateFoodItem);
 router.delete('/food-items/:food_id', adminController.deleteFoodItem);
 
 // Branch Management Routes
