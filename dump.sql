@@ -15,6 +15,7 @@ CREATE TABLE food_items (
     description TEXT,
     price DECIMAL(10, 2) NOT NULL,
     is_available BOOLEAN DEFAULT TRUE,
+    food_image TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

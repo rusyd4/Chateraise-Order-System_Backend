@@ -5,7 +5,7 @@ const pool = require('../db');
 exports.getAvailableFoodItems = async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT food_id, food_name, description, price FROM food_items WHERE is_available = TRUE ORDER BY food_name'
+      'SELECT food_id, food_name, description, price, food_image FROM food_items WHERE is_available = TRUE ORDER BY food_name'
     );
     res.json(result.rows);
   } catch (err) {
