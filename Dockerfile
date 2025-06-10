@@ -1,5 +1,5 @@
-# Use official Node.js LTS image as base (non-alpine for better native module compatibility)
-FROM node:18
+# Use official Node.js Alpine image
+FROM node:18-alpine
 
 # Create app directory
 WORKDIR /usr/src/app
