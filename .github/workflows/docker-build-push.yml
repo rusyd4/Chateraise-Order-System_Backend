@@ -1,0 +1,31 @@
+name: Docker Build and Push
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Build Image
+        run: |
+          docker build \
+            --build-arg PORT=${{ secrets.PORT }} \
+            --build-arg DATABASE_URL=${{ secrets.DATABASE_URL }} \
+            --build-arg JWT_SECRET=${{ secrets.JWT_SECRET }} \
+            --build-arg SMTP_PORT=${{ secrets.SMTP_PORT }} \
+            --build-arg SMTP_HOST=${{ secrets.SMTP_HOST }} \
+            --build-arg SMTP_USER=${{ secrets.SMTP_USER }} \
+            --build-arg SMTP_PASS=${{ secrets.SMTP_PASS }} \
+            -t naufalrusyda/online-order-backend:latest .
+
+      - name: Push Image
+        run: |
+          docker login -u naufalrusyda -p ${{ secrets.DOCKER_PASSWORD }}
+          docker push naufalrusyda/online-order-backend:latest
