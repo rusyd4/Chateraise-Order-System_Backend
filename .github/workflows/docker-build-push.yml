@@ -15,7 +15,9 @@ jobs:
 
       - name: Build Image
         run: |
-          docker buildx build --build-arg PORT=${{ secrets.PORT }} --build-arg DATABASE_URL=${{ secrets.DATABASE_URL }} --build-arg JWT_SECRET=${{ secrets.JWT_SECRET }} --build-arg SMTP_PORT=${{ secrets.SMTP_PORT }} --build-arg SMTP_HOST=${{ secrets.SMTP_HOST }} --build-arg SMTP_USER=${{ secrets.SMTP_USER }} --build-arg SMTP_PASS=${{ secrets.SMTP_PASS }} -t naufalrusyda/online-order-backend:latest .
+          docker build \
+            --build-arg NEXT_PUBLIC_API_BASE_URL=${{ secrets.NEXT_PUBLIC_API_BASE_URL }} \
+            -t naufalrusyda/online-order-backend:latest .
 
       - name: Push Image
         run: |
