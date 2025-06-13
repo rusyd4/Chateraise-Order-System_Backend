@@ -13,11 +13,20 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Build Image
-        run: docker build --build-arg NEXT_PUBLIC_API_BASE_URL=${{ secrets.NEXT_PUBLIC_API_BASE_URL }} --build-arg PORT=${{ secrets.PORT }} --build-arg DATABASE_URL=${{ secrets.DATABASE_URL }} --build-arg JWT_SECRET=${{ secrets.JWT_SECRET }} --build-arg SMTP_PORT=${{ secrets.SMTP_PORT }} --build-arg SMTP_HOST=${{ secrets.SMTP_HOST }} --build-arg SMTP_USER=${{ secrets.SMTP_USER }} --build-arg SMTP_PASS=${{ secrets.SMTP_PASS }} -t naufalrusyda/online-order-backend:latest .
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-      - name: Login to Docker Hub
-        run: docker login -u naufalrusyda -p ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: Push Image
-        run: docker push naufalrusyda/online-order-backend:latest
+      - name: Build and Push with Buildx
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: naufalrusyda/online-order-backend:latest
+          build-args: |
+            PORT=${{ secrets.PORT }}
+            DATABASE_URL=${{ secrets.DATABASE_URL }}
+            JWT_SECRET=${{ secrets.JWT_SECRET }}
+            SMTP_PORT=${{ secrets.SMTP_PORT }}
+            SMTP_HOST=${{ secrets.SMTP_HOST }}
+            SMTP_USER=${{ secrets.SMTP_USER }}
+            SMTP_PASS=${{ secrets.SMTP_PASS }}
