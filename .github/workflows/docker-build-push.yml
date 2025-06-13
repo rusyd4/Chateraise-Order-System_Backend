@@ -15,7 +15,7 @@ jobs:
 
       - name: Build Image
         run: |
-          docker build \
+          docker buildx build \
             --build-arg PORT=${{ secrets.PORT }} \
             --build-arg DATABASE_URL=${{ secrets.DATABASE_URL }} \
             --build-arg JWT_SECRET=${{ secrets.JWT_SECRET }} \
