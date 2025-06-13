@@ -16,10 +16,16 @@ jobs:
       - name: Build Image
         run: |
           docker build \
-            --build-arg NEXT_PUBLIC_API_BASE_URL=${{ secrets.NEXT_PUBLIC_API_BASE_URL }} \
+            --build-arg PORT=${{ secrets.PORT }} \
+            --build-arg DATABASE_URL=${{ secrets.DATABASE_URL }} \
+            --build-arg JWT_SECRET=${{ secrets.JWT_SECRET }} \
+            --build-arg SMTP_PORT=${{ secrets.SMTP_PORT }} \
+            --build-arg SMTP_HOST=${{ secrets.SMTP_HOST }} \
+            --build-arg SMTP_USER=${{ secrets.SMTP_USER }} \
+            --build-arg SMTP_PASS=${{ secrets.SMTP_PASS }} \
             -t naufalrusyda/online-order-backend:latest .
 
       - name: Push Image
         run: |
-          docker login -u naufalrusyda -p ${{ secrets.DOCKER_PASSWORD }}
+          echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u naufalrusyda --password-stdin
           docker push naufalrusyda/online-order-backend:latest
