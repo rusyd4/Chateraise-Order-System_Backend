@@ -1,20 +1,32 @@
 const nodemailer = require('nodemailer');
 require('dotenv').config();
 
-// Create transporter
+// Create transporter with better Docker compatibility
 const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 587,
-  secure: false,
+  service: 'gmail', // Use Gmail service directly
+  host: process.env.SMTP_HOST || 'smtp.gmail.com',
+  port: parseInt(process.env.SMTP_PORT) || 587,
+  secure: false, // true for 465, false for other ports
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS
-  }
+  },
+  connectionTimeout: 60000, // 60 seconds
+  greetingTimeout: 30000, // 30 seconds
+  socketTimeout: 60000, // 60 seconds
+  logger: true, // Enable logging
+  debug: process.env.NODE_ENV !== 'production', // Enable debug in development
 });
 
 // Function to send order confirmation email
 const sendOrderConfirmationEmail = async (orderDetails) => {
   try {
+    // Debug logging
+    console.log('SMTP Configuration:');
+    console.log('- SMTP_USER:', process.env.SMTP_USER ? 'Set' : 'Not set');
+    console.log('- SMTP_PASS:', process.env.SMTP_PASS ? 'Set' : 'Not set');
+    console.log('- SMTP_HOST:', process.env.SMTP_HOST || 'smtp.gmail.com');
+    console.log('- SMTP_PORT:', process.env.SMTP_PORT || '587');
     const { order_id, delivery_date, items, branch_info } = orderDetails;
     
     // Calculate total amount
