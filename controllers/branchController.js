@@ -1,4 +1,5 @@
 const pool = require('../db');
+const { sendOrderConfirmationEmail } = require('../utils/emailService');
 
 // Get available food items
 // GET /branch/food-items
@@ -60,6 +61,46 @@ exports.createOrder = async (req, res) => {
     }
 
     await pool.query('COMMIT');
+
+    // Get complete order details for email
+    const orderDetailsRes = await pool.query(
+      `SELECT o.order_id, o.delivery_date, o.order_date, o.order_status,
+        u.full_name, u.branch_address, u.delivery_time,
+        json_agg(json_build_object(
+          'food_name', f.food_name,
+          'quantity', oi.quantity,
+          'price', f.price
+        )) AS items
+      FROM orders o
+      JOIN users u ON o.branch_id = u.user_id
+      JOIN order_items oi ON o.order_id = oi.order_id
+      JOIN food_items f ON oi.food_id = f.food_id
+      WHERE o.order_id = $1
+      GROUP BY o.order_id, o.delivery_date, o.order_date, o.order_status, u.full_name, u.branch_address, u.delivery_time`,
+      [order_id]
+    );
+
+    if (orderDetailsRes.rows.length > 0) {
+      const orderDetails = orderDetailsRes.rows[0];
+      
+      // Prepare email data
+      const emailData = {
+        order_id: orderDetails.order_id,
+        delivery_date: orderDetails.delivery_date,
+        items: orderDetails.items,
+        branch_info: {
+          full_name: orderDetails.full_name,
+          branch_address: orderDetails.branch_address,
+          delivery_time: orderDetails.delivery_time
+        }
+      };
+
+      // Send email (don't await to avoid blocking the response)
+      sendOrderConfirmationEmail(emailData).catch(err => {
+        console.error('Failed to send order confirmation email:', err);
+      });
+    }
+
     res.status(201).json({ order_id, msg: 'Order created successfully' });
   } catch (err) {
     await pool.query('ROLLBACK');
