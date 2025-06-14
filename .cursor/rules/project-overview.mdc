@@ -1,0 +1,55 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Food Ordering System - Project Overview
+
+This is a Node.js/Express backend application for a food ordering system with role-based access control.
+
+## Project Structure
+
+The main entry point is [app.js](mdc:app.js), which sets up the Express server and configures middleware and routes.
+
+## Key Components
+
+### Application Entry Point
+- [app.js](mdc:app.js) - Main Express application setup with CORS, static file serving, and route mounting
+
+### Database Configuration
+- [db.js](mdc:db.js) - PostgreSQL database connection configuration
+- [dump.sql](mdc:dump.sql) - Database schema and initial data
+
+### Authentication & Authorization
+- [middleware/authMiddleware.js](mdc:middleware/authMiddleware.js) - JWT authentication middleware
+- [controllers/authController.js](mdc:controllers/authController.js) - Login and registration logic
+- [routes/authRoutes.js](mdc:routes/authRoutes.js) - Authentication endpoints
+
+### Admin Features
+- [controllers/adminController.js](mdc:controllers/adminController.js) - Admin operations (food items, branches, orders)
+- [routes/adminRoutes.js](mdc:routes/adminRoutes.js) - Admin-only endpoints
+
+### Branch Store Features  
+- [controllers/branchController.js](mdc:controllers/branchController.js) - Branch store operations (orders, profile)
+- [routes/branchRoutes.js](mdc:routes/branchRoutes.js) - Branch store endpoints
+
+### Data Management
+- [seedAdminUser.js](mdc:seedAdminUser.js) - Script to create initial admin user
+- [seedStore.js](mdc:seedStore.js) - Script to seed store data from CSV
+- [store.csv](mdc:store.csv) - Store data for seeding
+
+### Documentation
+- [API_DOCUMENTATION.md](mdc:API_DOCUMENTATION.md) - Complete API endpoint documentation
+- [package.json](mdc:package.json) - Project dependencies and scripts
+
+## User Roles
+1. **Admin** - Can manage food items, branches, and view all orders
+2. **Branch Store** - Can view food items, create orders, and manage their profile
+
+## Technology Stack
+- Node.js with Express framework
+- PostgreSQL database
+- JWT for authentication
+- bcrypt for password hashing
+- multer for file uploads
+- CORS enabled for cross-origin requests

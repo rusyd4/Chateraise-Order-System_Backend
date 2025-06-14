@@ -1,0 +1,77 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Development Setup and Common Tasks
+
+## Getting Started
+
+### Prerequisites
+- Node.js (version specified in [package.json](mdc:package.json))
+- PostgreSQL database
+- Environment variables configured
+
+### Installation
+```bash
+npm install
+```
+
+### Available Scripts
+As defined in [package.json](mdc:package.json):
+- `npm start` - Run production server with Node.js
+- `npm run dev` - Run development server with nodemon for auto-restart
+
+## Database Setup
+
+### Schema Creation
+Use [dump.sql](mdc:dump.sql) to create the database schema and initial data:
+```bash
+psql -d your_database -f dump.sql
+```
+
+### Seeding Data
+1. **Admin User**: Run [seedAdminUser.js](mdc:seedAdminUser.js) to create the initial admin account
+2. **Store Data**: Run [seedStore.js](mdc:seedStore.js) to populate stores from [store.csv](mdc:store.csv)
+
+## Environment Configuration
+
+Create a `.env` file with required variables:
+- Database connection settings
+- JWT secret key
+- Server port (defaults to 5000)
+
+The application loads environment variables using [dotenv](mdc:dotenv) in [app.js](mdc:app.js).
+
+## Docker Support
+
+The project includes [Dockerfile](mdc:Dockerfile) and [.dockerignore](mdc:.dockerignore) for containerization.
+
+## API Testing
+
+Refer to [API_DOCUMENTATION.md](mdc:API_DOCUMENTATION.md) for complete endpoint documentation including:
+- Authentication endpoints (`/auth`)
+- Admin endpoints (`/admin`) 
+- Branch store endpoints (`/branch`)
+
+## File Structure for New Features
+
+When adding new features, follow the existing pattern:
+1. Create controller in `controllers/`
+2. Create routes in `routes/`
+3. Add route mounting in [app.js](mdc:app.js)
+4. Update [API_DOCUMENTATION.md](mdc:API_DOCUMENTATION.md)
+
+## Common Development Tasks
+
+### Adding New Endpoints
+1. Define route in appropriate routes file
+2. Implement controller function
+3. Add authentication middleware if needed
+4. Test endpoint functionality
+5. Update API documentation
+
+### Database Changes
+1. Update [dump.sql](mdc:dump.sql) with schema changes
+2. Create migration scripts if needed
+3. Update seed scripts if affected

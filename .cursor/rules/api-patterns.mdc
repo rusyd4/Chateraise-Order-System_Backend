@@ -1,0 +1,58 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# API Patterns and Conventions
+
+This project follows a structured MVC pattern for API development.
+
+## Route Organization
+
+Routes are organized by feature area and mounted with specific prefixes in [app.js](mdc:app.js):
+
+- `/auth` - Authentication routes ([routes/authRoutes.js](mdc:routes/authRoutes.js))
+- `/admin` - Admin-only routes ([routes/adminRoutes.js](mdc:routes/adminRoutes.js))  
+- `/branch` - Branch store routes ([routes/branchRoutes.js](mdc:routes/branchRoutes.js))
+
+## Controller Pattern
+
+Each route group has a corresponding controller:
+
+- [controllers/authController.js](mdc:controllers/authController.js) - Handles login/register logic
+- [controllers/adminController.js](mdc:controllers/adminController.js) - Admin operations (CRUD for food items, branches, orders)
+- [controllers/branchController.js](mdc:controllers/branchController.js) - Branch-specific operations
+
+## Authentication Flow
+
+1. Routes requiring authentication use [middleware/authMiddleware.js](mdc:middleware/authMiddleware.js)
+2. JWT tokens are verified and user info is attached to `req.user`
+3. Role-based access control checks `req.user.role` for 'admin' or 'branch_store'
+
+## Common Patterns
+
+### Error Handling
+Controllers return JSON responses with consistent error structure:
+```javascript
+res.status(500).json({ success: false, message: 'Error description' })
+```
+
+### Success Responses
+Successful operations return:
+```javascript
+res.json({ success: true, message: 'Success description', data: result })
+```
+
+### Route Protection
+Protected routes follow this pattern:
+```javascript
+router.get('/endpoint', authMiddleware, controller.method)
+```
+
+## Database Integration
+
+All controllers use the database connection from [db.js](mdc:db.js) for PostgreSQL operations.
+
+## File Upload Support
+
+The application supports file uploads via multer middleware, with static file serving configured for the `/uploads` directory.

@@ -1,0 +1,78 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Security and Authentication
+
+## Authentication Architecture
+
+This application uses JWT (JSON Web Tokens) for stateless authentication.
+
+### Authentication Flow
+
+1. **Registration/Login**: [controllers/authController.js](mdc:controllers/authController.js) handles user authentication
+2. **Token Generation**: JWT tokens are created upon successful login
+3. **Token Verification**: [middleware/authMiddleware.js](mdc:middleware/authMiddleware.js) validates tokens on protected routes
+4. **User Context**: Authenticated user info is attached to `req.user` for use in controllers
+
+### Authentication Middleware
+
+The [middleware/authMiddleware.js](mdc:middleware/authMiddleware.js) file provides:
+- JWT token extraction from Authorization header
+- Token verification and validation
+- User role and information attachment to request object
+- Proper error handling for invalid/expired tokens
+
+### Route Protection
+
+Protected routes use the authentication middleware:
+```javascript
+const authMiddleware = require('../middleware/authMiddleware');
+router.get('/protected-route', authMiddleware, controller.method);
+```
+
+## Role-Based Access Control (RBAC)
+
+The system supports two user roles:
+
+### Admin Role
+- Full access to all admin routes in [routes/adminRoutes.js](mdc:routes/adminRoutes.js)
+- Can manage food items, branches, and view all orders
+- Implemented in [controllers/adminController.js](mdc:controllers/adminController.js)
+
+### Branch Store Role  
+- Limited access to branch-specific routes in [routes/branchRoutes.js](mdc:routes/branchRoutes.js)
+- Can create orders, view food items, and manage own profile
+- Implemented in [controllers/branchController.js](mdc:controllers/branchController.js)
+
+## Password Security
+
+- Passwords are hashed using bcrypt before storage
+- Password validation occurs during login process
+- No plain text passwords are stored or transmitted
+
+## CORS Configuration
+
+Cross-Origin Resource Sharing (CORS) is enabled in [app.js](mdc:app.js) to allow frontend applications to access the API.
+
+## Environment Variables
+
+Security-sensitive configuration is stored in environment variables:
+- JWT secret key for token signing
+- Database credentials
+- Server configuration
+
+Load these via the dotenv configuration in [app.js](mdc:app.js).
+
+## Security Best Practices Implemented
+
+1. **JWT Token Expiration**: Tokens have expiration times to limit session duration
+2. **Route Protection**: All sensitive operations require authentication
+3. **Role Verification**: Operations are restricted based on user roles
+4. **Input Validation**: Request data is validated before processing
+5. **Error Handling**: Security-sensitive errors don't expose internal details
+
+## Initial Admin Setup
+
+Use [seedAdminUser.js](mdc:seedAdminUser.js) to create the initial admin account securely with hashed password.
