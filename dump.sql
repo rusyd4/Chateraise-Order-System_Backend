@@ -33,3 +33,14 @@ CREATE TABLE order_items (
     food_id VARCHAR(6) NOT NULL REFERENCES food_items(food_id),
     quantity INTEGER NOT NULL CHECK (quantity > 0)
 );
+
+-- Create password_reset_otps table
+CREATE TABLE IF NOT EXISTS password_reset_otps (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(user_id),
+    email VARCHAR(255) NOT NULL,
+    otp VARCHAR(6) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    expires_at TIMESTAMP NOT NULL,
+    is_used BOOLEAN DEFAULT FALSE
+);
