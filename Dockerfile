@@ -1,6 +1,7 @@
 # Use official Node.js Alpine image
 FROM node:18-alpine AS runner
 
+# Set environment variables
 ARG PORT
 ARG DATABASE_URL
 ARG JWT_SECRET
