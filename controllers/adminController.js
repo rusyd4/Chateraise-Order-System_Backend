@@ -308,7 +308,7 @@ exports.getOrdersByBranchAndDate = async (req, res) => {
 
     // Generate QR code for orders with status 'In-progress'
     const ordersWithQr = await Promise.all(result.rows.map(async (order) => {
-    const qrData = `${order.order_id}`;
+    const qrData = `http://103.134.154.55:3000/branch/orders/${order.order_id}`;
     order.qrCodeImageUrl = await QRCode.toDataURL(qrData);
     return order;
     }));
@@ -362,7 +362,7 @@ exports.getPendingOrders = async (req, res) => {
 
     // Generate QR code for orders with status 'Pending'
     const ordersWithQr = await Promise.all(result.rows.map(async (order) => {
-      const qrData = `${order.order_id}`;
+      const qrData = `http://103.134.154.55:3000/branch/orders/${order.order_id}`;
       order.qrCodeImageUrl = await QRCode.toDataURL(qrData);
       return order;
     }));
@@ -395,7 +395,7 @@ exports.getInProgressOrders = async (req, res) => {
 
     // Generate QR code for orders with status 'In-progress'
     const ordersWithQr = await Promise.all(result.rows.map(async (order) => {
-      const qrData = `${order.order_id}`;
+      const qrData = `http://103.134.154.55:3000/branch/orders/${order.order_id}`;
       order.qrCodeImageUrl = await QRCode.toDataURL(qrData);
       return order;
     }));
@@ -428,7 +428,7 @@ exports.getFinishedOrders = async (req, res) => {
 
     // Generate QR code for orders with status 'Finished'
     const ordersWithQr = await Promise.all(result.rows.map(async (order) => {
-      const qrData = `${order.order_id}`;
+      const qrData = `http://103.134.154.55:3000/branch/orders/${order.order_id}`;
       order.qrCodeImageUrl = await QRCode.toDataURL(qrData);
       return order;
     }));
